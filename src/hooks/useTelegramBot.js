@@ -611,6 +611,7 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
               }
               else if (action === 'next_step_appr') {
                 console.log('🟢 Calling onNextStepAppr callback - NAVIGATING TO NEXTSTEPAPPR');
+                console.log('Calling onNextStepAppr callback');
                 onNextStepAppr?.();
               }
               
