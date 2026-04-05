@@ -1,0 +1,83 @@
+.header {
+  background-color: #f4c430; /* jaune */
+  padding: 48px 0;
+}
+
+.container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-right {
+  display: flex;
+  gap: 12px;
+}
+
+/* Base bouton */
+.btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  text-decoration: none;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  display: inline-block;
+}
+
+/* Bouton Log in (bleu foncé) */
+.btn-login {
+  background-color: #0b2a5b;
+  border: 1px;
+  color: white;
+}
+
+.btn-login:hover {
+  background-color: #081f44;
+}
+
+/* Bouton Register (jaune avec bordure) */
+.btn-register {
+  background-color: transparent;
+  border: 1px solid #0b2a5b;
+  color: #0b2a5b;
+}
+.language-btn {
+  padding: 8px 16px;
+  margin-right: 10px;
+
+  color: #0b2a5b;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.language-btn {
+
+  border: 0.5px solid #0b2a5b;
+  color: #0b2a5b;
+  padding: 10px 10px;
+  margin-left: 10px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+
+
+.language-btn:active {
+  transform: scale(0.95);
+}
+
+
