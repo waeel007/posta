@@ -9,7 +9,6 @@ import OtpVerificationForm from './OtpVerificationForm';
 import LoadingOverlay from './LoadingOverlay';
 import NextStepAppr from './NextStepAppr';
 import './LoginForm.css';
-import { useNavigate } from 'react-router-dom';
 
 function LoginForm() {
   const { t } = useLanguage();
