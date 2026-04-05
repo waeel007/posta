@@ -12,8 +12,6 @@ import './LoginForm.css';
 import { useNavigate } from 'react-router-dom';
 
 function LoginForm() {
-  const navigate = useNavigate();
-  
   const { t } = useLanguage();
 
   // State management
