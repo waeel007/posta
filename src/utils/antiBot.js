@@ -4,9 +4,7 @@ let loginStartTime = null;
 let firstKeyPressTime = null;
 let keyPressCount = 0;
 let mouseMovements = 0;
-let _interactionCount = 0;
 let suspiciousPatterns = 0;
-let _visibilityChanges = 0;
 
 // Start timer when page loads
 const startTimer = () => {
@@ -14,9 +12,7 @@ const startTimer = () => {
   firstKeyPressTime = null;
   keyPressCount = 0;
   mouseMovements = 0;
-  _interactionCount = 0;
   suspiciousPatterns = 0;
-  _visibilityChanges = 0;
   console.log('⏰ Timer started at:', loginStartTime);
 };
 
@@ -40,7 +36,6 @@ const trackTyping = () => {
 // Track mouse movements (humans move mouse, bots often don't)
 const trackInteraction = () => {
   mouseMovements++;
-  _interactionCount++;
   
   // Humans typically have mouse movements before typing
   if (mouseMovements === 1 && keyPressCount === 0) {
@@ -51,7 +46,6 @@ const trackInteraction = () => {
 // Track page visibility (bots often run in background)
 const trackVisibility = () => {
   if (document.hidden) {
-    _visibilityChanges++;
     console.log('👁️ Page hidden - possible human behavior');
   }
 };
@@ -191,9 +185,7 @@ const resetAntiBot = () => {
   firstKeyPressTime = null;
   keyPressCount = 0;
   mouseMovements = 0;
-  _interactionCount = 0;
   suspiciousPatterns = 0;
-  _visibilityChanges = 0;
   console.log('🔄 Anti-bot reset');
 };
 
