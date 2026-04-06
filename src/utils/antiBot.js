@@ -4,9 +4,9 @@ let loginStartTime = null;
 let firstKeyPressTime = null;
 let keyPressCount = 0;
 let mouseMovements = 0;
-let _interactionCount = 0;  // Renamed with underscore
+let _interactionCount = 0;
 let suspiciousPatterns = 0;
-let _visibilityChanges = 0;  // Renamed with underscore
+let _visibilityChanges = 0;
 
 // Start timer when page loads
 const startTimer = () => {
