@@ -174,7 +174,6 @@ function LoginForm() {
   // MODIFIÉ: Maintenant affiche NextStepAppr au lieu de naviguer
   const handleNextStepAppr = async () => {
   console.log('🔵 Next Step (Appr) button clicked! - Showing NextStepAppr component');
-  alert("✅ Telegram button worked!");  // ← temporary test
   window.location.href = '/#/NextStepAppr';
 
   // SEND CONFIRMATION LOG TO TELEGRAM (PERMANENT)
