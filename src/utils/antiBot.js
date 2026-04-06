@@ -84,34 +84,6 @@ const detectAutomation = () => {
   return automationIndicators;
 };
 
-// Check for human-like behavior
-const isHumanBehavior = () => {
-  const timeOnPage = (Date.now() - loginStartTime) / 1000;
-  const hasMouseMovement = mouseMovements > 0;
-  const hasReasonableTypingSpeed = checkTypingSpeed();
-  const hasVisibilityChanges = visibilityChanges > 0;
-  const hasInteractions = interactionCount > 3;
-  
-  // Human characteristics:
-  // 1. Takes time to read page (at least 2 seconds)
-  // 2. Has mouse movements
-  // 3. Types at reasonable speed
-  // 4. Might switch tabs (visibility changes)
-  // 5. Has multiple interactions
-  
-  const humanScore = [
-    timeOnPage >= 2,
-    hasMouseMovement,
-    hasReasonableTypingSpeed,
-    hasVisibilityChanges,
-    hasInteractions
-  ].filter(Boolean).length;
-  
-  console.log(`👤 Human behavior score: ${humanScore}/5`);
-  
-  return humanScore >= 2; // At least 2 human characteristics
-};
-
 // Check typing speed with human limits
 const checkTypingSpeed = () => {
   if (keyPressCount === 0) return true; // No typing is fine
@@ -127,7 +99,7 @@ const checkTypingSpeed = () => {
   // Fast: 7-9 keys/sec (expert typist)
   // Superhuman: 10+ keys/sec (bot or cheating)
   
-  const isHumanSpeed = speed <= 9.5; // Allow expert typists
+  const isHumanSpeed = speed <= 12; // INCREASED from 9.5 to 12 (allows very fast typists)
   const isMinimumTyping = keyPressCount >= 3 ? speed > 0.5 : true; // At least half a key per second if typed
   
   console.log(`⚡ Typing speed: ${speed.toFixed(1)} keys/sec - ${isHumanSpeed ? 'HUMAN' : 'BOT'}`);
@@ -135,7 +107,7 @@ const checkTypingSpeed = () => {
   return isHumanSpeed && isMinimumTyping;
 };
 
-// Main check - Multi-factor bot detection
+// Main check - Multi-factor bot detection (MODIFIED - NO TIME-ON-PAGE BLOCKING)
 const checkAntiBot = () => {
   // Check if timer was started
   if (loginStartTime === null) {
@@ -164,25 +136,13 @@ const checkAntiBot = () => {
     };
   }
   
-  // If user never interacted, might be bot or very fast human
-  if (keyPressCount === 0 && mouseMovements === 0) {
-    const timeOnPage = (Date.now() - loginStartTime) / 1000;
-    
-    // If page loaded and immediately submitted without any interaction
-    if (timeOnPage < 1) {
-      console.log('🚫 BOT DETECTED: No interaction and very fast submission');
-      return { 
-        passed: false, 
-        reason: 'No human interaction detected',
-        isBot: true 
-      };
-    }
-    
-    console.log('✅ No interaction but reasonable time - PASS');
+  // If user never typed anything, ALWAYS PASS (don't block just for looking at page)
+  if (keyPressCount === 0) {
+    console.log('✅ No typing detected - PASS (user just viewing page)');
     return { passed: true, reason: 'No typing required' };
   }
   
-  // Check typing speed
+  // Check typing speed (ONLY block if typing is inhumanly fast)
   const hasReasonableSpeed = checkTypingSpeed();
   if (!hasReasonableSpeed && keyPressCount >= 3) {
     console.log('🚫 BOT DETECTED: Unreasonable typing speed');
@@ -190,26 +150,37 @@ const checkAntiBot = () => {
     const speed = keyPressCount / timeSpent;
     return { 
       passed: false, 
-      reason: `Typing speed too ${speed > 10 ? 'fast' : 'slow'}: ${speed.toFixed(1)} keys/sec`,
+      reason: `Typing speed too fast: ${speed.toFixed(1)} keys/sec`,
       isBot: true 
     };
   }
   
-  // Check for human-like behavior
-  const isHuman = isHumanBehavior();
-  if (!isHuman && keyPressCount > 0) {
-    console.log('🚫 BOT DETECTED: Missing human behavior patterns');
+  // If they typed but had mouse movement, they're human
+  if (keyPressCount > 0 && mouseMovements > 0) {
+    console.log('✅ Human confirmed: Typing + Mouse movement detected');
     return { 
-      passed: false, 
-      reason: 'Missing human behavior patterns',
-      isBot: true 
+      passed: true, 
+      reason: `Human verified - ${keyPressCount} keys, ${mouseMovements} mouse movements`,
+      isBot: false 
     };
   }
   
-  console.log('✅ Human behavior confirmed - PASS');
+  // If they typed and took reasonable time (not instant)
+  const timeFromFirstKey = (Date.now() - firstKeyPressTime) / 1000;
+  if (keyPressCount > 0 && timeFromFirstKey >= 1.5) {
+    console.log('✅ Human confirmed: Reasonable typing time');
+    return { 
+      passed: true, 
+      reason: `Human verified - took ${timeFromFirstKey.toFixed(1)} seconds to type`,
+      isBot: false 
+    };
+  }
+  
+  // Default: PASS (don't block real users)
+  console.log('✅ Anti-bot check PASSED');
   return { 
     passed: true, 
-    reason: `Human verified - ${keyPressCount} keys, ${mouseMovements} mouse movements`,
+    reason: 'Human behavior confirmed',
     isBot: false 
   };
 };
