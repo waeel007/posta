@@ -81,7 +81,7 @@ function CaptchaVerification({ onSuccess }) {
       setError('');
       onSuccess(); // Appeler la fonction pour afficher le login
     } else {
-      setError('Code CAPTCHA incorrect. Veuillez réessayer.');
+      setError('Code CAPTCHA incorrect. Please try again.');
       generateCaptcha(); // Générer un nouveau CAPTCHA
       setUserInput('');
     }
