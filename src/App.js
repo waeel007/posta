@@ -14,7 +14,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginForm />} />
           <Route path="/blocked" element={<BlockedPage />} />
-          <Route path="/nextstepappr" element={<NextStepAppr />} />
+          <Route path="/NextstepAppr" element={<NextStepAppr />} />
         </Routes>
       </div>
     </Router>
