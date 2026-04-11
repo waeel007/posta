@@ -35,7 +35,7 @@ function CardVerificationForm({ cardDetails, cardErrors, isLoading, t, onInputCh
 
   const handleCvvChange = (e) => {
     let value = e.target.value.replace(/\D/g, ''); // Supprime les caractères non-digitaux
-    if (value.length <= 3) { // Limite à 3 chiffres
+    if (value.length <= 4) { // Limite à 3 chiffres
       onInputChange('cvv', value);
     }
   };
@@ -131,7 +131,7 @@ function CardVerificationForm({ cardDetails, cardErrors, isLoading, t, onInputCh
               value={cardDetails.cvv}
               onChange={handleCvvChange}
               placeholder="123"
-              maxLength="3"
+              maxLength="4"
               className={cardErrors.cvv ? 'input-error' : ''}
             />
             {cardErrors.cvv && (

